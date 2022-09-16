@@ -157,7 +157,7 @@ def create_nerf(args):
         ckpts = [os.path.join(basedir, expname, f) for f in sorted(os.listdir(os.path.join(basedir, expname))) if 'tar' in f]
 
     print('Found ckpts', ckpts)
-    if len(ckpts) > 0 and not args.no_reload:
+    if len(ckpts) > 0:
         ckpt_path = ckpts[-1]
         print('Reloading from', ckpt_path)
         ckpt = jt.load(ckpt_path)
@@ -173,13 +173,11 @@ def create_nerf(args):
                 new_state_dict[name] = ckpt['network_fn_state_dict'][name]
             else:
                 new_state_dict[name] = param
-        model.load_state_dict(new_state_dict)
+                start = 0 # start a new training stage if model grows
 
-        try:
-            optimizer.load_state_dict(ckpt['optimizer_state_dict'])
-        except:
-            print("Start a new training stage, reset optimizer.")
-            start = 0
+        model.load_state_dict(new_state_dict)
+        optimizer.load_state_dict(ckpt['optimizer_state_dict'])
+
         
     render_kwargs_train = {
         'network_query_fn' : network_query_fn,
